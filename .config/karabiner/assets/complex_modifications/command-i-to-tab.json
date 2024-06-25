@@ -1,0 +1,21 @@
+{
+  "description": "Remap Control + I to Tab",
+  "manipulators": [
+    {
+      "from": {
+        "key_code": "i",
+        "modifiers": {
+          "mandatory": ["left_command"],
+          "optional": ["any"]
+        }
+      },
+      "to": [
+        {
+          "key_code": "tab",
+          "modifiers": []
+        }
+      ],
+      "type": "basic"
+    }
+  ]
+}

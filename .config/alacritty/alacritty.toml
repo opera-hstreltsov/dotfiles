@@ -1,0 +1,31 @@
+# https://alacritty.org/config-alacritty.html
+
+
+# Import additional configuration files.
+# 
+# Imports are loaded in order, skipping all missing files, with the
+# importing file being loaded last. If a field is already present in a
+# previous import, it will be replaced.
+# 
+# All imports must either be absolute paths starting with /, or paths
+# relative to the user's home directory starting with ~/.
+
+import = [
+   "~/.config/alacritty/themes/gruvbox-dark.toml",
+   "~/.config/alacritty/themes/gruvbox-light.toml"
+]
+
+[window]
+dynamic_padding = true
+startup_mode = "Maximized"
+decorations = "None"
+
+[font]
+normal = { family = "Operator Mono", style="Book" }
+bold = { family = "Operator Mono", style="Medium" }
+italic = { family = "Operator Mono", style="Book Italic" }
+bold_italic = { family = "Operator Mono", style = "Medium Italic" }
+size=20
+
+[selection]
+save_to_clipboard = true

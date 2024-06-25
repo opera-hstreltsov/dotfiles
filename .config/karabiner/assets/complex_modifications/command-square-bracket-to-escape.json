@@ -1,0 +1,21 @@
+{
+  "description": "Remap Command + [ to Escape",
+  "manipulators": [
+    {
+      "from": {
+        "key_code": "open_bracket",
+        "modifiers": {
+          "mandatory": ["left_command"],
+          "optional": ["any"]
+        }
+      },
+      "to": [
+        {
+          "key_code": "escape",
+          "modifiers": []
+        }
+      ],
+      "type": "basic"
+    }
+  ]
+}

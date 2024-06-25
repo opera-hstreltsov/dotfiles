@@ -1,0 +1,21 @@
+{
+  "description": "Remap Command + M to Return",
+  "manipulators": [
+    {
+      "from": {
+        "key_code": "m",
+        "modifiers": {
+          "mandatory": ["left_command"],
+          "optional": ["any"]
+        }
+      },
+      "to": [
+        {
+          "key_code": "return_or_enter",
+          "modifiers": []
+        }
+      ],
+      "type": "basic"
+    }
+  ]
+}
