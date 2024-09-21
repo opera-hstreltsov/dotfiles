@@ -1,5 +1,13 @@
 -- colorschemes https://dotfyle.com/neovim/colorscheme/trending
 
+-- Hide tab bar
+vim.o.showtabline = 0
+
+-- Configure characters used to fill different parts of the UI. 'vert'
+-- controls the character used for vertical window separators.
+-- vim.o.fillchars = "vert: "
+vim.o.fillchars = "vert: ,eob: "
+
 -- Merge sign column with number column
 -- vim.opt.signcolumn = "number"
 
@@ -7,10 +15,6 @@ vim.opt.conceallevel = 2
 
 -- Enable true color support, allowing for more than 256 colors
 vim.opt.termguicolors = true
-
--- Disable mode indication in command line. By default, Vim shows
--- "-- INSERT --", "-- VISUAL --", etc.
-vim.opt.showmode = false
 
 -- Set search to be case-sensitive only if the search pattern
 -- contains uppercase characters
@@ -28,8 +32,6 @@ vim.opt.relativenumber = true
 
 -- Set the number of spaces used for each indentation level
 vim.opt.shiftwidth = 2
-
--- Convert tabs into spaces
 
 -- Automatically indent new lines to match the previous line's
 -- indentation
@@ -66,10 +68,6 @@ vim.opt.ignorecase = true
 -- Disable the creation of swap files
 vim.opt.swapfile = false
 
--- Enable the creation of undo files, allowing changes to be
--- undone after exiting and restarting Vim
-vim.opt.undofile = true
-
 -- Set the time Vim waits before writing to the swap file to 100
 -- milliseconds
 vim.opt.updatetime = 100
@@ -78,12 +76,6 @@ vim.opt.updatetime = 100
 -- instance. Only one status line is shown at the bottom
 -- indicating the status of the current window.
 vim.opt.laststatus = 0
-
--- Set the status line
-vim.o.statusline = "%f " -- File path
-  .. "%h%m%r " -- File status flags
-  -- .. "[%{v:lua.git_branch()}] " -- Git branch
-  .. "[%{getcwd()}]" -- Working directory
 
 -- Set the maximum width for text that is being inserted. A longer
 -- line will be broken after white space to get this width.
@@ -106,15 +98,6 @@ vim.api.nvim_create_autocmd("VimResized", {
   pattern = { "*" },
   callback = function()
     vim.cmd("wincmd =")
-  end,
-})
-
--- Disable line numbers for Markdown files
-vim.api.nvim_create_autocmd("FileType", {
-  pattern = { "markdown" },
-  callback = function()
-    vim.opt.number = false
-    vim.opt.relativenumber = false
   end,
 })
 
@@ -142,6 +125,7 @@ require("paq")({
   "savq/paq-nvim",
   "nvim-lua/plenary.nvim",
   { "nvim-treesitter/nvim-treesitter", build = ":TSUpdate" },
+  -- TODO: Do we still need it?
   "airblade/vim-rooter",
   "lewis6991/gitsigns.nvim",
   "sindrets/diffview.nvim",
@@ -154,6 +138,7 @@ require("paq")({
   "hrsh7th/cmp-buffer",
   "hrsh7th/cmp-cmdline",
 
+  -- What do these do?
   "hrsh7th/cmp-nvim-lsp",
   "hrsh7th/cmp-path",
   "hrsh7th/nvim-cmp",
@@ -164,9 +149,90 @@ vim.keymap.set("n", "<leader>f", require("telescope.builtin").find_files, {})
 vim.keymap.set("n", "<leader>g", require("telescope.builtin").live_grep, {})
 vim.keymap.set("n", "<leader>s", require("telescope.builtin").git_status, {})
 
+local augroup = vim.api.nvim_create_augroup("LspFormatting", {})
+
+-- LSP
+local lspconfig = require("lspconfig")
+local capabilities = vim.lsp.protocol.make_client_capabilities()
+require("cmp_nvim_lsp").default_capabilities(capabilities)
+
+-- LSP ESlint
+lspconfig.eslint.setup({
+  capabilities = capabilities,
+  on_attach = function(client, bufnr)
+    vim.api.nvim_create_autocmd("BufWritePre", {
+      buffer = bufnr,
+      command = "EslintFixAll",
+    })
+  end,
+})
+
+-- LSP TypeScript
+lspconfig.tsserver.setup({
+  capabilities = capabilities,
+})
+
+-- LSP Tailwind
+lspconfig.tailwindcss.setup({
+  capabilities = capabilities,
+  filetypes = {
+    "typescriptreact",
+  },
+})
+
+-- Use LspAttach autocommand to only map the following keys
+-- after the language server attaches to the current buffer
+vim.api.nvim_create_autocmd("LspAttach", {
+  group = vim.api.nvim_create_augroup("UserLspConfig", {}),
+  callback = function(ev)
+    -- Enable completion triggered by <c-x><c-o>
+    vim.bo[ev.buf].omnifunc = "v:lua.vim.lsp.omnifunc"
+
+    vim.keymap.set("n", "gD", vim.lsp.buf.declaration, { buffer = ev.buf })
+    vim.keymap.set("n", "gd", vim.lsp.buf.definition, { buffer = ev.buf })
+    vim.keymap.set("n", "K", vim.lsp.buf.hover, { buffer = ev.buf })
+    vim.keymap.set("n", "gi", vim.lsp.buf.implementation, { buffer = ev.buf })
+    vim.keymap.set("n", "<C-k>", vim.lsp.buf.signature_help, { buffer = ev.buf })
+    vim.keymap.set("n", "<Leader>D", vim.lsp.buf.type_definition, { buffer = ev.buf })
+    vim.keymap.set("n", "<Leader>rn", vim.lsp.buf.rename, { buffer = ev.buf })
+    vim.keymap.set("n", "<Leader>rf", vim.lsp.buf.references, { buffer = ev.buf })
+    vim.keymap.set({ "n", "v" }, "<Leader>ca", vim.lsp.buf.code_action, { buffer = ev.buf })
+  end,
+})
+
+-- Null-ls
+require("null-ls").setup({
+
+  sources = {
+    require("null-ls").builtins.formatting.stylua,
+    require("null-ls").builtins.formatting.prettier.with({}),
+  },
+
+  on_attach = function(client, bufnr)
+    -- TODO: Consider adding similar check to ESlint
+    if client.supports_method("textDocument/formatting") then
+      vim.api.nvim_clear_autocmds({ group = augroup, buffer = bufnr })
+      vim.api.nvim_create_autocmd("BufWritePre", {
+        group = augroup,
+        buffer = bufnr,
+        callback = function()
+          vim.lsp.buf.format({
+            async = false,
+            bufnr = bufnr,
+            filter = function(client)
+              return client.name == "null-ls"
+            end,
+          })
+        end,
+      })
+    end
+  end,
+})
+
 -- Completion
 local cmp = require("cmp")
 
+-- TODO: Clean up
 cmp.setup({
   snippet = {
     -- REQUIRED - you must specify a snippet engine
@@ -200,94 +266,6 @@ cmp.setup({
   }),
 })
 
--- function _G.path_complete()
---   local col = vim.fn.col(".")
---   local line = vim.fn.getline(".")
---   local start_col = vim.fn.col(".") - 1
---   local match = vim.fn.matchstr(line:sub(1, start_col), "[^\\]*$")
---   return vim.fn.complete(start_col, vim.fn.globpath(vim.fn.getcwd(), match))
--- end
---
--- vim.o.omnifunc = "v:lua.vim.lsp.omnifunc"
--- vim.api.nvim_set_option("completefunc", "v:lua.path_complete")
--- vim.api.nvim_set_keymap("i", "<C-i>", "<C-x><C-o>", { noremap = true, silent = true })
-
--- Null-ls
-require("null-ls").setup({
-  -- you can reuse a shared lspconfig on_attach callback here
-  sources = {
-    require("null-ls").builtins.formatting.stylua,
-    require("null-ls").builtins.formatting.prettier.with({}),
-  },
-  on_attach = function(client, bufnr)
-    if client.supports_method("textDocument/formatting") then
-      vim.api.nvim_clear_autocmds({ group = augroup, buffer = bufnr })
-      vim.api.nvim_create_autocmd("BufWritePre", {
-        group = augroup,
-        buffer = bufnr,
-        callback = function()
-          -- on 0.8, you should use vim.lsp.buf.format({ bufnr = bufnr }) instead
-          -- on later neovim version, you should use vim.lsp.buf.format({ async = false }) instead
-          vim.lsp.buf.format({
-            async = false,
-            bufnr = bufnr,
-            filter = function(client)
-              return client.name == "null-ls"
-            end,
-          })
-        end,
-      })
-    end
-  end,
-})
-
--- LSP
-local lspconfig = require("lspconfig")
-local capabilities = vim.lsp.protocol.make_client_capabilities()
-require("cmp_nvim_lsp").default_capabilities(capabilities)
-
--- LSP Eslint
-lspconfig.eslint.setup({
-  capabilities = capabilities,
-  on_attach = function(client, bufnr)
-    vim.api.nvim_create_autocmd("BufWritePre", {
-      command = "EslintFixAll",
-      buffer = bufnr,
-    })
-  end,
-})
-
--- LSP TypeScript
-lspconfig.tsserver.setup({ capabilities = capabilities })
-
--- LSP Tailwind
-lspconfig.tailwindcss.setup({
-  capabilities = capabilities,
-  filetypes = {
-    "typescriptreact",
-  },
-})
-
--- Use LspAttach autocommand to only map the following keys
--- after the language server attaches to the current buffer
-vim.api.nvim_create_autocmd("LspAttach", {
-  group = vim.api.nvim_create_augroup("UserLspConfig", {}),
-  callback = function(ev)
-    -- Enable completion triggered by <c-x><c-o>
-    vim.bo[ev.buf].omnifunc = "v:lua.vim.lsp.omnifunc"
-
-    vim.keymap.set("n", "gD", vim.lsp.buf.declaration, { buffer = ev.buf })
-    vim.keymap.set("n", "gd", vim.lsp.buf.definition, { buffer = ev.buf })
-    vim.keymap.set("n", "K", vim.lsp.buf.hover, { buffer = ev.buf })
-    vim.keymap.set("n", "gi", vim.lsp.buf.implementation, { buffer = ev.buf })
-    vim.keymap.set("n", "<C-k>", vim.lsp.buf.signature_help, { buffer = ev.buf })
-    vim.keymap.set("n", "<Leader>D", vim.lsp.buf.type_definition, { buffer = ev.buf })
-    vim.keymap.set("n", "<Leader>rn", vim.lsp.buf.rename, { buffer = ev.buf })
-    vim.keymap.set("n", "<Leader>rf", vim.lsp.buf.references, { buffer = ev.buf })
-    vim.keymap.set({ "n", "v" }, "<Leader>ca", vim.lsp.buf.code_action, { buffer = ev.buf })
-  end,
-})
-
 -- Treesitter
 -- TODO: Explore the plugin
 require("nvim-treesitter.configs").setup({
@@ -295,32 +273,13 @@ require("nvim-treesitter.configs").setup({
   ensure_installed = { "vimdoc", "lua", "vim", "html", "css", "javascript", "typescript", "tsx", "markdown" },
 })
 
--- Gruvbox
-vim.g.gruvbox_contrast_dark = "hard"
-vim.g.gruvbox_contrast_light = "soft"
-vim.g.gruvbox_sign_column = "bg0"
-vim.g.gruvbox_invert_selection = 0
-vim.g.gruvbox_improved_warnings = 1
-vim.g.gruvbox_italic = 1
--- vim.g.gruvbox_vert_split = "bg2"
-vim.cmd("colorscheme gruvbox")
-vim.cmd("set background=dark")
-
 -- DiffView
-local actions = require("diffview.actions")
-
 require("diffview").setup({
   use_icons = false,
 })
 
--- Miscelanneous
-vim.keymap.set("n", "<Leader>wt", [[<Cmd>lvim '^##\+\s' % | lopen<CR>]])
-vim.keymap.set("n", "<Leader>nt", [[<Cmd>lvim '^##\+\s' % | lopen<CR>]])
-vim.keymap.set("n", "<Leader>E", vim.diagnostic.setqflist)
-
 -- Git Signs
-
--- Text object
+-- TODO: Clean up
 require("gitsigns").setup({
   on_attach = function()
     local gitsigns = require("gitsigns")
@@ -402,3 +361,22 @@ require("gitsigns").setup({
   numhl = true,
   signcolumn = false, -- Toggle with `:Gitsigns toggle_signs`
 })
+
+-- Gruvbox
+vim.g.gruvbox_contrast_dark = "hard"
+vim.g.gruvbox_contrast_light = "soft"
+vim.g.gruvbox_sign_column = "bg0"
+vim.g.gruvbox_invert_selection = 0
+vim.g.gruvbox_improved_warnings = 1
+vim.g.gruvbox_italic = 1
+
+vim.cmd("colorscheme gruvbox")
+vim.cmd("set background=dark")
+
+-- Custom Mappings
+vim.keymap.set("n", "<Leader>wt", [[<Cmd>lvim '^##\+\s' % | lopen<CR>]])
+vim.keymap.set("n", "<Leader>nt", [[<Cmd>lvim '^##\+\s' % | lopen<CR>]])
+vim.keymap.set("n", "<Leader>E", vim.diagnostic.setqflist)
+
+-- Remap Ctrl + 6 to switch to the previous buffer, same behavior as Ctrl + ^
+vim.api.nvim_set_keymap("n", "<C-6>", "<C-^>", { noremap = true, silent = true })

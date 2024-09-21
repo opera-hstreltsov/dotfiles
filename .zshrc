@@ -72,6 +72,10 @@ plugins=(
 
 source $ZSH/oh-my-zsh.sh
 
+# Manually add the directory to your $HOME/.zshrc (or similar):
+export DENO_INSTALL="/Users/hermanstreltsov/.deno"
+export PATH="$DENO_INSTALL/bin:$PATH"
+
 # User configuration
 
 # export MANPATH="/usr/local/man:$MANPATH"

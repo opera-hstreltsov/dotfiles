@@ -12,7 +12,7 @@
 
 import = [
    "~/.config/alacritty/themes/gruvbox-dark.toml",
-   "~/.config/alacritty/themes/gruvbox-light.toml"
+  # "~/.config/alacritty/themes/gruvbox-light.toml"
 ]
 
 [window]
@@ -29,3 +29,10 @@ size=20
 
 [selection]
 save_to_clipboard = true
+
+[keyboard]
+bindings = [
+  # This binds the "Ctrl + 6" key combination to send the character "\u001e",
+  # which is the same as "Ctrl + ^" (Control + caret)
+  { key = "Key6", mods = "Control", chars = "\u001e" }
+]
