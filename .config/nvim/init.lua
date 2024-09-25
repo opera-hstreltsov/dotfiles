@@ -123,6 +123,7 @@ vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float)
 
 require("paq")({
   "savq/paq-nvim",
+  "stevearc/oil.nvim",
   "nvim-lua/plenary.nvim",
   { "nvim-treesitter/nvim-treesitter", build = ":TSUpdate" },
   -- TODO: Do we still need it?
@@ -277,6 +278,8 @@ require("nvim-treesitter.configs").setup({
 require("diffview").setup({
   use_icons = false,
 })
+
+require("oil").setup()
 
 -- Git Signs
 -- TODO: Clean up
