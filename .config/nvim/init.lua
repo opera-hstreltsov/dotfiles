@@ -145,7 +145,6 @@ require("paq")({
   "hrsh7th/nvim-cmp",
 })
 
--- Telescope
 vim.keymap.set("n", "<leader>f", require("telescope.builtin").find_files, {})
 vim.keymap.set("n", "<leader>g", require("telescope.builtin").live_grep, {})
 vim.keymap.set("n", "<leader>s", require("telescope.builtin").git_status, {})
@@ -169,7 +168,7 @@ lspconfig.eslint.setup({
 })
 
 -- LSP TypeScript
-lspconfig.tsserver.setup({
+lspconfig.ts_ls.setup({
   capabilities = capabilities,
 })
 
@@ -374,7 +373,7 @@ vim.g.gruvbox_improved_warnings = 1
 vim.g.gruvbox_italic = 1
 
 vim.cmd("colorscheme gruvbox")
-vim.cmd("set background=dark")
+vim.cmd("set background=light")
 
 -- Custom Mappings
 vim.keymap.set("n", "<Leader>wt", [[<Cmd>lvim '^##\+\s' % | lopen<CR>]])

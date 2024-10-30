@@ -12,7 +12,7 @@
 
 import = [
    "~/.config/alacritty/themes/gruvbox-dark.toml",
-  # "~/.config/alacritty/themes/gruvbox-light.toml"
+   "~/.config/alacritty/themes/gruvbox-light.toml"
 ]
 
 [window]
