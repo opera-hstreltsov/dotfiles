@@ -127,7 +127,7 @@ alias dpstart='yarn && yarn configure test && yarn dev'
 alias boin='yarn && yarn configure test'
 alias bostart='yarn && yarn configure test && yarn start'
 alias inno='sudo n $(cat package.json | jq -r ".engines.node[2:]")'
-alias brainfm='mpv "$(find ~/brainfm | shuf -n 1)" & disown'
+alias brainfm='mpv "$(find ~/Music/brainfm | shuf -n 1)" & disown'
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 

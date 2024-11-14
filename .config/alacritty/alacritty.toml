@@ -12,7 +12,7 @@
 
 import = [
    "~/.config/alacritty/themes/gruvbox-dark.toml",
-   "~/.config/alacritty/themes/gruvbox-light.toml"
+   # "~/.config/alacritty/themes/gruvbox-light.toml"
 ]
 
 [window]
@@ -25,7 +25,7 @@ normal = { family = "Operator Mono", style="Book" }
 bold = { family = "Operator Mono", style="Medium" }
 italic = { family = "Operator Mono", style="Book Italic" }
 bold_italic = { family = "Operator Mono", style = "Medium Italic" }
-size=20
+size=22
 
 [selection]
 save_to_clipboard = true

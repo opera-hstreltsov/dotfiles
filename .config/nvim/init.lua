@@ -24,11 +24,11 @@ vim.opt.smartcase = true
 vim.opt.cursorline = true
 
 -- Display line numbers in the gutter
-vim.opt.number = true
+-- vim.opt.number = true
 
 -- Display line numbers relative to the current line's position in
 -- the gutter
-vim.opt.relativenumber = true
+-- vim.opt.relativenumber = true
 
 -- Set the number of spaces used for each indentation level
 vim.opt.shiftwidth = 2
@@ -134,10 +134,13 @@ require("paq")({
   "morhetz/gruvbox",
   "nvimtools/none-ls.nvim",
   { "nvim-telescope/telescope.nvim", branch = "0.1.x" },
+  { "shortcuts/no-neck-pain.nvim", tag = "*" },
+  "f-person/auto-dark-mode.nvim",
 
   "neovim/nvim-lspconfig",
   "hrsh7th/cmp-buffer",
   "hrsh7th/cmp-cmdline",
+  "smithbm2316/centerpad.nvim",
 
   -- What do these do?
   "hrsh7th/cmp-nvim-lsp",
@@ -145,8 +148,17 @@ require("paq")({
   "hrsh7th/nvim-cmp",
 })
 
+-- Telescope
+local themes = require("telescope.themes")
+function live_grep_current_file(preset_string)
+  require("telescope.builtin").live_grep({
+    search_dirs = { vim.fn.expand("%:p") },
+  })
+end
+
 vim.keymap.set("n", "<leader>f", require("telescope.builtin").find_files, {})
 vim.keymap.set("n", "<leader>g", require("telescope.builtin").live_grep, {})
+vim.keymap.set("n", "<leader>v", "<cmd>lua live_grep_current_file()<CR>", {})
 vim.keymap.set("n", "<leader>s", require("telescope.builtin").git_status, {})
 
 local augroup = vim.api.nvim_create_augroup("LspFormatting", {})
@@ -154,7 +166,7 @@ local augroup = vim.api.nvim_create_augroup("LspFormatting", {})
 -- LSP
 local lspconfig = require("lspconfig")
 local capabilities = vim.lsp.protocol.make_client_capabilities()
-require("cmp_nvim_lsp").default_capabilities(capabilities)
+-- require("cmp_nvim_lsp").default_capabilities(capabilities)
 
 -- LSP ESlint
 lspconfig.eslint.setup({
@@ -175,9 +187,9 @@ lspconfig.ts_ls.setup({
 -- LSP Tailwind
 lspconfig.tailwindcss.setup({
   capabilities = capabilities,
-  filetypes = {
-    "typescriptreact",
-  },
+  -- filetypes = {
+  --   "typescriptreact",
+  -- },
 })
 
 -- Use LspAttach autocommand to only map the following keys
@@ -206,6 +218,8 @@ require("null-ls").setup({
   sources = {
     require("null-ls").builtins.formatting.stylua,
     require("null-ls").builtins.formatting.prettier.with({}),
+    -- require("null-ls").builtins.diagnostics.eslint_d,
+    -- require("null-ls").builtins.formatting.eslint_d,
   },
 
   on_attach = function(client, bufnr)
@@ -278,6 +292,7 @@ require("diffview").setup({
   use_icons = false,
 })
 
+-- Oil
 require("oil").setup()
 
 -- Git Signs
@@ -373,12 +388,44 @@ vim.g.gruvbox_improved_warnings = 1
 vim.g.gruvbox_italic = 1
 
 vim.cmd("colorscheme gruvbox")
-vim.cmd("set background=light")
+
+-- Auto Dark Mode
+
+require("auto-dark-mode").setup({
+  update_interval = 1000,
+  set_dark_mode = function()
+    vim.api.nvim_set_option_value("background", "dark", {})
+    -- vim.cmd("set background=dark")
+  end,
+  set_light_mode = function()
+    vim.api.nvim_set_option_value("background", "light", {})
+    -- vim.cmd("set background=light")
+  end,
+})
+
+-- NoNeckPain
+require("no-neck-pain").setup({
+  -- width = 80,
+  buffers = {
+    scratchPad = {
+      enabled = false,
+      fileName = "notes",
+      location = nil,
+    },
+    bo = {
+      filetype = "md",
+    },
+  },
+})
+
+vim.api.nvim_create_autocmd("VimEnter", {
+  callback = function()
+    vim.cmd("NoNeckPain")
+  end,
+})
 
 -- Custom Mappings
-vim.keymap.set("n", "<Leader>wt", [[<Cmd>lvim '^##\+\s' % | lopen<CR>]])
-vim.keymap.set("n", "<Leader>nt", [[<Cmd>lvim '^##\+\s' % | lopen<CR>]])
-vim.keymap.set("n", "<Leader>E", vim.diagnostic.setqflist)
+-- vim.keymap.set("n", "<Leader>E", vim.diagnostic.setqflist)
 
 -- Remap Ctrl + 6 to switch to the previous buffer, same behavior as Ctrl + ^
-vim.api.nvim_set_keymap("n", "<C-6>", "<C-^>", { noremap = true, silent = true })
+-- vim.api.nvim_set_keymap("n", "<C-6>", "<C-^>", { noremap = true, silent = true })
