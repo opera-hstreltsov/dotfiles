@@ -405,7 +405,7 @@ require("auto-dark-mode").setup({
 
 -- NoNeckPain
 require("no-neck-pain").setup({
-  -- width = 80,
+  width = 104,
   buffers = {
     scratchPad = {
       enabled = false,
